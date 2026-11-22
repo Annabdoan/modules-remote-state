@@ -286,12 +286,13 @@ Når apply er ferdig, skal du se `s3_website_url` som output. Verifiser også at
 
 Repoet inneholder en enkel statisk nettside i `website/`-mappen. Last opp filene til din bucket:
 
+> **Merk:** `ola-nordmann-pgr301-website` under er bare et eksempel. Bytt det ut med ditt eget bucket-navn (det samme du satte i `main.tf`) før du kjører kommandoen — ikke lim inn `ola-nordmann` ordrett.
+
 ```bash
 aws s3 sync website/ s3://ola-nordmann-pgr301-website
 ```
 
 - `aws s3 sync` kopierer filer og speiler kataloginnhold
-- Bytt bucket-navnet til ditt eget
 
 Hent URL-en og åpne den i nettleseren:
 
@@ -324,9 +325,10 @@ output "s3_website_two_url" {
 }
 ```
 
-Kjør:
+Kjør `terraform init` på nytt først — Terraform må initialisere det nye modul-kallet før `plan`/`apply`, ellers feiler de:
 
 ```bash
+terraform init
 terraform plan
 terraform apply
 ```
@@ -334,6 +336,8 @@ terraform apply
 Legg merke til at én og samme modul-definisjon lager to komplette nettside-stacker (bucket + website-config + public access block + bucket policy) — med kun ulike variabler som input. Dette er kjernepoenget med moduler: samme logikk, forskjellig konfigurasjon, ingen duplisert kode.
 
 Last gjerne opp innhold til den andre bucketen også for å verifisere at begge nettsidene fungerer:
+
+> **Merk:** Bytt `ola-nordmann-pgr301-website-2` ut med ditt eget navn på den andre bucketen før du kjører kommandoen.
 
 ```bash
 aws s3 sync website/ s3://ola-nordmann-pgr301-website-2
@@ -430,15 +434,7 @@ jobs:
         run: terraform apply -auto-approve  # -auto-approve hopper over interaktiv bekreftelse
 ```
 
-GitHub Actions ser kun workflows som ligger i repoet på GitHub. Commit og push workflow-filen før du går videre — ellers trigges ingenting:
-
-NB. Workflow vil sjekke at formattering av kode er korrekt i henhold til HCL standard. Så du kan / bør gjøre  `terraform fmt --recursive` før du comitter koden. 
-
-```bash
-git add .github/workflows/terraform.yml
-git commit -m "Add Terraform CI/CD workflow"
-git push
-```
+Ikke push noe ennå — du setter opp secrets i Steg 2 og pusher all koden samlet i Steg 3. GitHub Actions ser uansett kun workflows som ligger i repoet på GitHub, så ingenting trigges før du pusher.
 
 ### Steg 2: Konfigurer GitHub Secrets
 
@@ -452,7 +448,20 @@ Gi GitHub Actions tilgang til AWS:
 
 Disse secrets bør være fra en dedicated IAM-bruker med minimal permissions (kun det Terraform trenger).
 
-### Steg 3: Test Pipeline
+### Steg 3: Push koden til main som baseline
+
+Nå committer du all Terraform-koden du lagde i Del 1 og 2 sammen med workflow-fila, slik at `main` har et komplett utgangspunkt. Workflowen sjekker at koden er formatert i henhold til HCL-standard, så kjør `terraform fmt` først (`--recursive` tar også med koden i undermapper som modulen):
+
+```bash
+terraform fmt --recursive
+git add .
+git commit -m "Add Terraform infrastructure and CI/CD workflow"
+git push
+```
+
+Pushen til `main` trigger workflowen. Siden secrets nå er på plass og ressursene allerede finnes i state, kjører `terraform apply` uten å endre noe. Verifiser at kjøringen blir grønn under **Actions**-fanen før du går videre.
+
+### Steg 4: Test Pipeline
 
 1. Lag en ny branch:
 
@@ -475,7 +484,7 @@ module "s3_website" {
 Workflowen kjører `terraform fmt -check`. Kjør `terraform fmt` lokalt først — den formaterer koden korrekt så pipelinen ikke feiler:
 
 ```bash
-terraform fmt
+terraform fmt --recursive
 ```
 
 3. Commit og push:
