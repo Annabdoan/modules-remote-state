@@ -24,7 +24,7 @@ https://244530008913.signin.aws.amazon.com/console
 
 ### Om GitHub forks
 
-En **fork** er din egen kopi av et GitHub-repo under din GitHub-konto. Du jobber i din kopi uten å påvirke originalen, og kan senere åpne pull requests tilbake hvis du vil bidra endringer. I denne labben trenger du en fork for å kunne pushe commits (Del 4 krever det) og legge inn repository secrets i ditt eget repo.
+En **fork** er din egen kopi av et GitHub-repo under din GitHub-konto. Du jobber i din kopi uten å påvirke originalen, og kan senere åpne pull requests tilbake hvis du vil bidra endringer. I denne labben trenger du en fork for å kunne pushe commits og legge inn repository secrets i ditt eget repo.
 
 ### Steg 0: Opprett GitHub Codespace fra din fork
 
@@ -36,7 +36,7 @@ En **fork** er din egen kopi av et GitHub-repo under din GitHub-konto. Du jobber
 
 Terraform og AWS CLI trenger AWS-nøkler for å kunne snakke med AWS-kontoen din. En Codespace starter uten disse.
 
-Hent `Access Key ID` og `Secret Access Key` fra AWS Academy / IAM, og kjør:
+Du kan få utdelt `Access Key ID` og `Secret Access Key` i klasserommet, eller lage dem selv i IAM — se https://github.com/glennbechdevops/aws-iam-accesskeys. Når du har nøklene, kjør:
 
 ```bash
 aws configure
@@ -49,7 +49,7 @@ Fyll inn verdiene:
 - **Default region name**: `eu-west-1`
 - **Default output format**: `json`
 
-Hvis du bruker AWS Academy må du i tillegg sette `AWS_SESSION_TOKEN`. Verifiser at nøklene fungerer:
+Verifiser at nøklene fungerer:
 
 ```bash
 aws sts get-caller-identity
@@ -411,7 +411,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Format Check
-        run: terraform fmt -check
+        run: terraform fmt -check  # -check feiler jobben hvis koden ikke er korrekt formatert (uten å endre filene)
 
       - name: Terraform Validate
         run: terraform validate
@@ -488,7 +488,7 @@ module "s3_website" {
 }
 ```
 
-Workflowen kjører `terraform fmt -check`. Kjør `terraform fmt` lokalt først — den formatterer koden korrekt så pipelinen ikke feiler:
+Workflowen kjører `terraform fmt -check`. Kjør `terraform fmt` lokalt først — den formaterer koden korrekt så pipelinen ikke feiler:
 
 ```bash
 terraform fmt
@@ -625,26 +625,6 @@ Du har nå lært:
 
 ---
 
-## Opprydding
-
-Når du er ferdig med labben, rydd opp etter deg for å unngå løpende AWS-kostnader og søppel i den delte state-bucketen.
-
-1. Tøm nettside-bucketene og destroy infrastrukturen:
-
-```bash
-aws s3 rm s3://ola-nordmann-pgr301-website --recursive    # Bytt til ditt bucket-navn
-aws s3 rm s3://ola-nordmann-pgr301-website-2 --recursive  # Bytt til ditt bucket-navn
-terraform destroy
-```
-
-2. Slett din state-fil fra den delte bucketen:
-
-```bash
-aws s3 rm s3://pgr301-terraform-state/ola-nordmann/website/terraform.tfstate  # Bytt prefikset til ditt eget
-```
-
----
-
 ## Bonusoppgave: Validation Rules
 
 Legg til validation i `modules/s3-website/variables.tf` slik at modulen avviser ugyldige bucket-navn før `terraform apply`:
@@ -671,3 +651,23 @@ Test ved å prøve en ugyldig verdi (f.eks. `Bucket_Med_Store_Bokstaver`) og se 
 - [AWS CloudFront Developer Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/)
 - [GitHub Actions Terraform Tutorial](https://developer.hashicorp.com/terraform/tutorials/automation/github-actions)
 - [Terraform Best Practices](https://www.terraform-best-practices.com/)
+
+---
+
+## Opprydding
+
+Når du er ferdig med labben, rydd opp etter deg for å unngå løpende AWS-kostnader og søppel i den delte state-bucketen.
+
+1. Tøm nettside-bucketene og destroy infrastrukturen:
+
+```bash
+aws s3 rm s3://ola-nordmann-pgr301-website --recursive    # --recursive sletter alle objekter i bucketen; bytt til ditt bucket-navn
+aws s3 rm s3://ola-nordmann-pgr301-website-2 --recursive  # Bytt til ditt bucket-navn
+terraform destroy
+```
+
+2. Slett din state-fil fra den delte bucketen:
+
+```bash
+aws s3 rm s3://pgr301-terraform-state/ola-nordmann/website/terraform.tfstate  # Bytt prefikset til ditt eget
+```
