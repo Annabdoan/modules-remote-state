@@ -1,6 +1,6 @@
 # Terraform: Moduler, Remote State og CI/CD
 
-I denne øvelsen skal du bygge en gjenbrukbar Terraform-modul som hoster en statisk nettside på AWS. Du lærer å organisere Terraform-kode i moduler, dele state i S3 og automatisere deployment med GitHub Actions. Som valgfri oppgave kan du legge CloudFront foran bucketen for HTTPS og global distribusjon.
+I denne øvelsen skal du bygge en gjenbrukbar Terraform-modul som hoster en statisk nettside på AWS. Du lærer å organisere Terraform-kode i moduler, dele state i S3 og automatisere deployment med GitHub Actions.
 
 ## AWS-konto 
 
@@ -12,13 +12,11 @@ https://244530008913.signin.aws.amazon.com/console
 - **Terraform-moduler**: Pakke infrastruktur i gjenbrukbare komponenter
 - **Remote state**: Dele Terraform state i S3 og låse den for samtidige endringer
 - **CI/CD med GitHub Actions**: Automatisere `terraform plan` og `apply`
-- **CloudFront CDN** (valgfritt): Global distribusjon med HTTPS foran S3
 
 ## AWS-tjenester i denne labben
 
 - **S3 (Simple Storage Service)**: Objektlager. Hoster de statiske filene som utgjør nettsiden, og lagrer Terraform state remote.
 - **IAM**: Identity and Access Management. Styrer gjennom bucket policies og GitHub Actions-credentials hvem som kan lese og endre hva.
-- **CloudFront** (valgfri oppgave): AWS sitt CDN. Distribuerer nettsiden globalt og legger HTTPS på toppen av S3.
 
 ## Forberedelser
 
@@ -126,7 +124,7 @@ En typisk Terraform-modul består av følgende filer:
 
 ```
 modules/s3-website/
-├── main.tf        # Hovedressurser (S3, CloudFront, etc.)
+├── main.tf        # Hovedressurser (S3, bucket policy, etc.)
 ├── variables.tf   # Input-variabler som modulen tar imot
 └── outputs.tf     # Output-verdier som modulen returnerer
 ```
@@ -494,112 +492,6 @@ git push origin test-pipeline
 
 ---
 
-## Valgfri oppgave: CloudFront CDN
-
-### Hvorfor CloudFront?
-
-S3 website hosting har begrensninger:
-- Ingen HTTPS-støtte
-- Ikke globalt distribuert (treg for brukere langt fra bucket-regionen)
-
-CloudFront løser disse problemene.
-
-### Legg til CloudFront Distribution
-
-**Utvid** `modules/s3-website/main.tf` med CloudFront:
-
-```hcl
-resource "aws_cloudfront_distribution" "website" {
-  enabled             = true
-  default_root_object = "index.html"
-
-  origin {
-    domain_name = aws_s3_bucket_website_configuration.website.website_endpoint
-    origin_id   = "S3-${var.bucket_name}"
-
-    custom_origin_config {
-      origin_protocol_policy = "http-only"
-      http_port              = 80
-      https_port             = 443
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
-
-  default_cache_behavior {
-    target_origin_id       = "S3-${var.bucket_name}"
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl     = 0
-    default_ttl = 0  # Instant refresh - ingen caching
-    max_ttl     = 0
-  }
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true
-  }
-}
-```
-
-### Legg til CloudFront Output
-
-**Utvid** `modules/s3-website/outputs.tf`:
-
-```hcl
-output "cloudfront_url" {
-  description = "CloudFront distribution URL (HTTPS enabled)"
-  value       = "https://${aws_cloudfront_distribution.website.domain_name}"
-}
-
-output "cloudfront_domain" {
-  description = "CloudFront domain name"
-  value       = aws_cloudfront_distribution.website.domain_name
-}
-```
-
-### Oppdater Rot-Outputs
-
-I rot-`main.tf`, legg til CloudFront output:
-
-```hcl
-output "cloudfront_url" {
-  value       = module.s3_website.cloudfront_url
-  description = "CloudFront URL with HTTPS"
-}
-```
-
-### Deploy CloudFront
-
-```bash
-terraform apply
-```
-
-CloudFront-deployment tar typisk 3-15 minutter.
-
-### Test CDN
-
-```bash
-terraform output cloudfront_url
-```
-
-Åpne URL-en i nettleseren. HTTPS fungerer automatisk, og URL-en er global (CloudFront, ikke region-spesifikk).
-
----
-
 ## Oppsummering
 
 Du har nå lært:
@@ -607,7 +499,6 @@ Du har nå lært:
 - **Remote State Management**: State-deling i team og CI/CD
 - **Terraform-moduler**: Gjenbrukbar infrastruktur-kode
 - **CI/CD med GitHub Actions**: Automatisert `terraform plan` og `apply`
-- **CloudFront CDN** (valgfritt): Global distribusjon med HTTPS
 
 ---
 
@@ -634,7 +525,6 @@ Test ved å prøve en ugyldig verdi (f.eks. `Bucket_Med_Store_Bokstaver`) og se 
 ## Ressurser
 
 - [Terraform Modules Documentation](https://developer.hashicorp.com/terraform/language/modules)
-- [AWS CloudFront Developer Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/)
 - [GitHub Actions Terraform Tutorial](https://developer.hashicorp.com/terraform/tutorials/automation/github-actions)
 - [Terraform Best Practices](https://www.terraform-best-practices.com/)
 
