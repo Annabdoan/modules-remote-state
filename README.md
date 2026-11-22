@@ -341,20 +341,6 @@ Last gjerne opp innhold til den andre bucketen også for å verifisere at begge 
 aws s3 sync website/ s3://ola-nordmann-pgr301-website-2
 ```
 
-### Utfordring (ekstra)
-
-Legg til en `enable_versioning`-variabel i modulen som gjør versioning valgfri:
-
-```hcl
-resource "aws_s3_bucket_versioning" "website" {
-  count  = var.enable_versioning ? 1 : 0
-  bucket = aws_s3_bucket.website.id
-  # ...
-}
-```
-
-Hint: Bruk `count` eller `for_each` basert på variabelen.
-
 ---
 
 ## Del 3: GitHub Actions CI/CD
@@ -671,3 +657,16 @@ terraform destroy
 ```bash
 aws s3 rm s3://pgr301-terraform-state/ola-nordmann/website/terraform.tfstate  # Bytt prefikset til ditt eget
 ```
+
+---
+
+## AI disclaimer
+
+This assignment is designed and created to illustrate specific concepts in the DevOps domain. AI has been used to fix grammatical errors, spelling etc.
+
+The AI tooling (the `pgr301-lab` skill) runs the following checks on this README:
+
+- Validates that required sections are present (learning goals, an explanation of GitHub forks, and the AWS services used).
+- Finds and fixes spelling typos in the Norwegian text.
+- Checks for structural and logical inconsistencies (numbering gaps, forward references, document order vs. action order, terminology drift, unexplained command-line flags, leftover placeholders).
+- Flags AI-style language and emoji use to keep the text direct and academic.
