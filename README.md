@@ -552,11 +552,4 @@ aws s3 rm s3://pgr301-terraform-state/ola-nordmann/website/terraform.tfstate  # 
 
 ## Bruk av KI i denne oppgaven
 
-This assignment is designed and created by me, Glenn Bech, to illustrate specific concepts in the DevOps domain. AI has been used to fix grammatical errors, spelling etc.
-
-The AI tooling (the `pgr301-lab` skill) runs the following checks on this README:
-
-- Validates that required sections are present (learning goals, an explanation of GitHub forks, and the AWS services used).
-- Finds and fixes spelling typos in the Norwegian text.
-- Checks for structural and logical inconsistencies (numbering gaps, forward references, document order vs. action order, terminology drift, unexplained command-line flags, leftover placeholders).
-- Flags AI-style language and emoji use to keep the text direct and academic.
+Oppgaven er designet og laget av meg, Glenn Bech, for å illustrere konkrete konsepter innen DevOps. KI er brukt til korrektur — grammatikk, staving og struktur.
