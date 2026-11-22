@@ -550,9 +550,9 @@ aws s3 rm s3://pgr301-terraform-state/ola-nordmann/website/terraform.tfstate  # 
 
 ---
 
-## AI disclaimer
+## Bruk av KI i denne oppgaven
 
-This assignment is designed and created to illustrate specific concepts in the DevOps domain. AI has been used to fix grammatical errors, spelling etc.
+This assignment is designed and created by me, Glenn Bech, to illustrate specific concepts in the DevOps domain. AI has been used to fix grammatical errors, spelling etc.
 
 The AI tooling (the `pgr301-lab` skill) runs the following checks on this README:
 
