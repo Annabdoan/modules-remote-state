@@ -26,9 +26,10 @@ module "s3_website_two" {
   bucket_name = "anna-pgr301-website-2" # Må være globalt unikt, bruk ditt eget prefiks
 
   tags = {
-    Name        = "PGR301 Lab - Nettside 2"
-    Environment = "Demo"
-    ManagedBy   = "Terraform"
+    Name         = "PGR301 Lab - Nettside 2"
+    Environment  = "Demo"
+    ManagedBy    = "Terraform"
+    PipelineTest = "true"
   }
 }
 
